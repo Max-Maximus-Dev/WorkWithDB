@@ -4,92 +4,6 @@
 #include <vector>
 #include <fstream>
 
-// ------------- Les1 -------------
-/**class Student {
-private:
-	std::string name;
-	int age;
-public:
-	Student(std::string name, int age) {
-		this->name = name;
-		this->age = age;
-	}
-	std::string getName() { return name; }
-	int getAge() { return age; }
-};
-class DBClass {
-protected:
-	std::string sumname;
-	int sumage;
-public:
-	virtual void insertToDB() = 0;
-	std::string getSumname() { return sumname; }
-	int getSumage() { return sumage; }
-};
-class StudentDB : public DBClass {
-public:
-	void insertToDB() override {
-		std::string request = "Insert INTO studentt (Name, Age) VALUES('" + sumname + "', " + std::to_string(sumage) + ");";
-		sqlite3* db;
-		if (sqlite3_open("test.db", &db) == SQLITE_OK) {
-			if (sqlite3_exec(db, request.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-				std::cout << "Successfully inserted data." << std::endl;
-			}
-			else {
-				std::cout << "Failed to insert data." << std::endl;
-			}
-		}
-		else {
-			std::cout << "Failed to open database." << std::endl;
-		}
-	}
-};
-class PersonDB : public DBClass {
-private:
-	std::string name, lastname, address;
-	int age, year, phoneNumber;
-public:
-	PersonDB(std::string name = "John", std::string lastname = "Doe", std::string address = "123 Main St", int age = 30, int year = 2024, int phoneNumber = 1234567890) {
-		this->name = name;
-		this->lastname = lastname;
-		this->address = address;
-		this->age = age;
-		this->year = year;
-		this->phoneNumber = phoneNumber;
-	}
-	void insertToDB() override {
-		std::string request = "Insert INTO personn (Name, Lastname, Address, Age, Year, PhoneNumber) VALUES('" + name + "', '" + lastname + "', '" + address + "', " + std::to_string(age) + ", " + std::to_string(year) + ", " + std::to_string(phoneNumber) + ");";
-		std::string request_create = "CREATE TABLE IF NOT EXISTS personn ("
-			"ID INTEGER PRIMARY KEY AUTOINCREMENT , "
-			"Name TEXT,"
-			"Lastname TEXT,"
-			"Address TEXT,"
-			"Age INT,"
-			"Year INT,"
-			"PhoneNumber INT);";
-		sqlite3* db;
-		if (sqlite3_open("test.db", &db) == SQLITE_OK) {
-			if (sqlite3_exec(db, request_create.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-				if (sqlite3_exec(db, request.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-					std::cout << "Successfully inserted data." << std::endl;
-				}
-				else {
-					std::cout << "Failed to insert data." << std::endl;
-				}
-			}
-			else {
-				std::cout << "Failed to create table." << std::endl;
-			}
-		}
-		else {
-			std::cout << "Failed to open database." << std::endl;
-		}
-		
-	}
-};**/
-
-
-// ------------- Les2.Para1 -------------
 int callback(void* info, int size, char** arg, char** col_name) {
 	for (int i = 0; i < size; i++) {
 		std::cout << "[" << col_name[i] << "] ";
@@ -279,16 +193,198 @@ public:
 		}
 	}
 };
-// ------------- Les2.Para1 -------------
+void menu(std::vector<Employee>& employees, std::fstream& logs, Employee& emplynow) {
+	int choice = -1;
+	std::cout << "Menu:\n";
+	std::cout << "1. Add Emplyee\n2. Delete Employee\n3. Update Employee\n4. Find Employee\n5. Display All Employees\n6. Exit\n";
+	std::cout << "Enter your choice: ";
+	std::cin >> choice;
+	if (choice == 1) {
+		std::cout << "Enter company name: ";
+		std::string companyName, position;
+		std::cin.ignore();
+		std::getline(std::cin, companyName);
+		std::cout << "Enter position: ";
+		std::getline(std::cin, position);
+		for (auto& emp : employees) {
+			if (emp.getCompanyName() == companyName && emp.getPosition() == position) {
+				std::cout << "Employee already exists." << std::endl;
+			}
+			else {
+				Employee newEmp(companyName, position, 0, 0, 0);
+				employees.push_back(newEmp);
+			}
+		}
+		std::cout << "Employee added successfully." << std::endl;
+	}
+	else if (choice == 2) {
+		std::cout << "Enter company name: ";
+		std::string companyName, position;
+		std::cin.ignore();
+		std::getline(std::cin, companyName);
+		std::cout << "Enter position: ";
+		std::getline(std::cin, position);
+		for (auto it = employees.begin(); it != employees.end(); it++) {
+			if (it->getCompanyName() == companyName && it->getPosition() == position) {
+				employees.erase(it);
+				std::cout << "Employee deleted successfully." << std::endl;
+				return;
+			}
+		}
+		std::cout << "Employee not found." << std::endl;
+	}
+	else if (choice == 3) {
+		emplynow.updateAndTask(employees, logs);
+	}
+	else if (choice == 4) {
+		std::cout << "Enter company name to find: ";
+		std::string companyName;
+		std::cin.ignore();
+		std::getline(std::cin, companyName);
+		for (auto& emp : employees) {
+			if (emp.getCompanyName() == companyName) {
+				std::cout << "Employee found: " << emp.getCompanyName() << " - " << emp.getPosition() << std::endl;
+				return;
+			}
+		}
+		std::cout << "Employee not found." << std::endl;
+	}
+	else if (choice == 5) {
+		for (auto& emp : employees) {
+			std::cout << "Company: " << emp.getCompanyName() << ", Position: " << emp.getPosition()
+				<< ", Status: " << emp.getStatus() << ", Salary: " << emp.getSalary()
+				<< ", Bonus: " << emp.getBonus() << ", Years Worked: " << emp.getYearWorked() << std::endl;
+		}
+	}
+	else if (choice == 6) {
+		std::cout << "Exiti" << std::endl;
+	}
+	else {
+		std::cout << "Invalid choice." << std::endl;
+	}
+}
+void registerUser(std::fstream& logs, std::vector<Employee>& employees) {
+	std::string companyName;
+	std::string position;
+	int salary;
+	int bonus;
+	int yearWorked;
+	std::cout << "Enter company name: ";
+	std::getline(std::cin, companyName);
+	std::cout << "Enter position: ";
+	std::getline(std::cin, position);
+	std::cout << "Enter salary: ";
+	std::cin >> salary;
+	std::cout << "Enter bonus: ";
+	std::cin >> bonus;
+	std::cout << "Enter years worked: ";
+	std::cin >> yearWorked;
+	std::cin.ignore();
+	for (auto& emp : employees) {
+		if (emp.getCompanyName() == companyName && emp.getPosition() == position) {
+			std::cout << "Employee already exists." << std::endl;
+		}
+		else {
+			Employee newEmp(companyName, position, salary, bonus, yearWorked);
+			newEmp.insertToDB(logs);
+			newEmp.insert(logs);
+			employees.push_back(newEmp);
+			std::cout << "Registration successful." << std::endl;
+			menu(employees, logs, newEmp);
+		}
+	}
+}
 
+void loginUser(std::vector<Employee>& employees, std::fstream &logs) {
+	std::string companyName;
+	std::string position;
+	std::cout << "Enter company name: ";
+	std::getline(std::cin, companyName);
+	std::cout << "Enter position: ";
+	std::getline(std::cin, position);
+	for (auto& emp : employees) {
+		if (emp.getCompanyName() == companyName && emp.getPosition() == position) {
+			std::cout << "Login successful." << std::endl;
+			emp.updateAndTask(employees, logs);
+			emp.select(logs);
+			menu(employees, logs, emp);
+		}
+	}
+	std::cout << "Login failed. Employee not found." << std::endl;
+}
 
-
-// ------------- Les2.Para2 -------------
-
-
-
-
-// ------------- Les2.Para2 -------------
+void SerializeData(std::vector<Employee>& employees, const std::string& filename) {
+	std::ofstream ofs(filename);
+	if (!ofs) {
+		std::cerr << "Error opening file for serialization." << std::endl;
+		return;
+	}
+	for (auto& emp : employees) {
+		size_t companyNameSize = emp.getCompanyName().size();
+		ofs << companyNameSize << ' ' << emp.getCompanyName() << ' ';
+		size_t positionSize = emp.getPosition().size();
+		ofs << positionSize << ' ' << emp.getPosition() << ' ';
+		size_t statusSize = emp.getStatus().size();
+		ofs << statusSize << ' ' << emp.getStatus() << ' ';
+		ofs << emp.getSalary() << ' ' << emp.getBonus() << ' ' << emp.getYearWorked() << ' ';
+	}
+	ofs.close();
+}
+void DeserializeData(std::vector<Employee>& employees, const std::string& filename) {
+	std::ifstream ifs(filename);
+	if (!ifs) {
+		std::cerr << "Error opening file for deserialization." << std::endl;
+	}
+	while (true) {
+		size_t companyNameSize;
+		if (!(ifs >> companyNameSize)) {
+			break;
+		}
+		ifs.get();
+		std::string companyName(companyNameSize, ' ');
+		ifs.read(&companyName[0], companyNameSize);
+		size_t positionSize;
+		ifs >> positionSize;
+		ifs.get();
+		std::string position(positionSize, ' ');
+		ifs.read(&position[0], positionSize);
+		size_t statusSize;
+		ifs >> statusSize;
+		ifs.get();
+		std::string status(statusSize, ' ');
+		ifs.read(&status[0], statusSize);
+		int salary, bonus, yearWorked;
+		ifs >> salary >> bonus >> yearWorked;
+		Employee emp(companyName, position, status, salary, bonus, yearWorked);
+		employees.push_back(emp);
+	}
+	ifs.close();
+}
+void startMenu(std::vector<Employee>& employees, std::fstream &logs) {
+	int choice;
+	DeserializeData(employees, "employees.dat");
+	do {
+		std::cout << "1. Register\n2. Login\n3. Exit\nEnter your choice: ";
+		std::cin >> choice;
+		std::cin.ignore();
+		switch (choice) {
+		case 1:
+			registerUser(logs, employees);
+			SerializeData(employees, "employees.dat");
+			break;
+		case 2:
+			loginUser(employees, logs);
+			SerializeData(employees, "employees.dat");
+			break;
+		case 3:
+			std::cout << "Exit" << std::endl;
+			break;
+		default:
+			std::cout << "Invalid choice." << std::endl;
+		}
+	} while (choice != 3);
+}
+	
 
 
 int main()
@@ -301,133 +397,12 @@ int main()
 	else {
 		std::cout << "Failed to open database." << std::endl;
 	}
-	std::string req = "DROP TABLE EMPLOYEE";
-	sqlite3_exec(db, req.c_str(), nullptr, nullptr, nullptr);
-	// ------------------------------ Les1 --------------------------------
-	/**
-	sqlite3* db; спосіб Створення бази Д
-	sqlite3_open("test.db", &db); спосіб Відкриття бази Даних
-	SQLITE_OK перевірка на успішне відкриття бази Даних
-	sqlite3_close(db); спосіб Закриття бази Даних
-	sqlite3_exec(db, request.c_str(), nullptr, nullptr, nullptr); спосіб Виконання SQL запиту
-	**/
-	/*std::string request = "CREATE TABLE IF NOT EXISTS studentt ("
-		"ID INTEGER PRIMARY KEY AUTOINCREMENT , "
-		"Name TEXT,"
-		"Age INT);";
-	int age1 = 18;
-	std::string name = "Markl";*/
-	/**Student student("Mark", 20);
-	std::string req_student = "INSERT INTO studentt (Name, Age) VALUES ('" + student.getName() + "', " + std::to_string(student.getAge()) + ");";
-	if (sqlite3_exec(db, req_student.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-		std::cout << "Successfully inserted data." << std::endl;
-	}
-	else {
-		std::cout << "Failed to insert data." << std::endl;
-	}**/
-	/*DBClass* dbClass = new StudentDB();
-	dbClass->insertToDB();*/
-	/*DBClass* sumperson = new PersonDB();
-	sumperson->insertToDB();*/
-	/**DBClass* person1 = new PersonDB("John", "Smith", "456 Oak St", 28, 2023, 9876543210);
-	DBClass* person2 = new PersonDB("Alice", "Johnson", "789 Pine St", 35, 2022, 5551234567);
-	DBClass* person3 = new PersonDB("Michael", "Brown", "321 Maple St", 42, 2021, 4449876543);
-	DBClass* person4 = new PersonDB("Emily", "Davis", "654 Cedar St", 30, 2024, 3334567890);
-	DBClass* person5 = new PersonDB("David", "Wilson", "987 Birch St", 25, 2023, 2221234567);
-	std::vector<DBClass*> persons = { person1, person2, person3, person4, person5 };
-	for (auto person : persons) {
-		person->insertToDB();
-	}**/
-	/**
-	std::string request_delete = "DROP TABLE personn;";
-	std::string request_delete1 = "DROP TABLE PERSON;";
-	std::string request_delete2 = "DROP TABLE PERSONNeff;";
-	if (sqlite3_open("test.db", &db) == SQLITE_OK) {
-		std::cout << "Database opened successfully." << std::endl;
-	}
-	else {
-		std::cout << "Failed to open database." << std::endl;
-	}
-	if (sqlite3_exec(db, request_delete.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-		std::cout << "Table deleted successfully." << std::endl;
-	}
-	if (sqlite3_exec(db, request_delete1.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-		std::cout << "Table deleted successfully." << std::endl;
-	}
-	if (sqlite3_exec(db, request_delete2.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-		std::cout << "Table deleted successfully." << std::endl;
-	}
-	else {
-		std::cout << "Failed to delete table." << std::endl;
-	}**/
-	/*std::string request = "CREATE TABLE PERSONN ("
-		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"NAME TEXT NOT NULL, "
-		"AGE INTEGER NOT NULL);";*/
-	/*if (sqlite3_exec(db, request.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK) {
-		std::cout << "Table created successfully." << std::endl;
-	}
-	else {
-		std::cout << "Failed to create table." << std::endl;
-	}*/
-	// ------------------------------ Les1 --------------------------------
-	
+	/*std::string req = "DROP TABLE EMPLOYEE";
+	sqlite3_exec(db, req.c_str(), nullptr, nullptr, nullptr);*/
 
+	std::fstream logs("logs.txt", std::ios::out);
+	std::vector<Employee> employees;
+	startMenu(employees, logs);
 
-
-
-
-	// -----------------------------------------------Test-----------------------------------------------
-	
-	//std::string reqCreate = "CREATE TABLE IF NOT EXISTS TEST ("
-	//	"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
-	//	"NAME TEXT NOT NULL, "
-	//	"AGE INTEGER NOT NULL);";
-	//int age2 = 22;
-	//std::string name2 = "Alice";
-	//std::string reqInsert = "INSERT INTO TEST (NAME, AGE) VALUES ('" + name2 + "', " + std::to_string(age2) + ");";
-	//std::string reqUpdate = "UPDATE TEST SET NAME = 'bob', AGE = " + std::to_string(age2) + " WHERE ID = 1;";
-	//std::string reqDelete = "DELETE FROM TEST WHERE ID = 1;";
-	//std::string reqSelect = "SELECT * FROM TEST;";
-	//char* msgError = nullptr;
-	//if (sqlite3_exec(db, reqSelect.c_str(), callback, nullptr, &msgError) == SQLITE_OK) {
-	//	std::cout << "It work!" << std::endl;
-	//}
-	//else {
-	//	std::cerr << "Error - " << msgError << std::endl;
-	//}
-	
-	//-----------------------------------------------Test-----------------------------------------------
-
-
-
-
-
-
-	// --------------------------------------- Les2.Para1 -------------------------------------
-	std::fstream logs("logs.txt");
-	if (logs.is_open()) {
-		int choice = -1;
-		while (choice != 0) {
-			int ask_create;
-			std::cout << "---------------------------------------------------------" << std::endl;
-			std::cout << "------------------Create Table Emplyee-------------------" << std::endl;
-			std::cout << "---------------Insert into Table Emplyee-----------------" << std::endl;
-			std::cout << "-------------------Set Bonus to salary-------------------" << std::endl;
-			std::cout << "---------------Update into Table Emplyee-----------------" << std::endl;
-			std::cout << "---------------Select into Table Emplyee-----------------" << std::endl;
-			std::cout << "---------------------------------------------------------" << std::endl;
-			if (choice == 0) {
-				break;
-			}
-			else if (choice = 1) {
-
-			}
-		}
-
-	}
-	
-
-	// --------------------------------------- Les2.Para1 -------------------------------------
 	sqlite3_close(db);
 }
